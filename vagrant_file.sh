@@ -20,9 +20,11 @@ fi
 
 mkdir -p $root_dir
 cd $root_dir
-for i in lib bin spec Gemfile Rakefile pandler.gemspec .git .gitignore LICENSE.txt README.md Vagrantfile vagrant_file.sh; do
+for i in lib spec Gemfile Rakefile pandler.gemspec .git .gitignore LICENSE.txt README.md Vagrantfile vagrant_file.sh; do
   ln -sf "$vagrant_dir/$i" .
 done
+mkdir -p "$root_dir/bin"
+ln -sf "$vagrant_dir/bin/pandle" bin/pandle
 
 bundle install --path vendor/bundle
 bundle exec pandle install

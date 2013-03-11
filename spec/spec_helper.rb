@@ -1,5 +1,7 @@
 require 'rspec'
 require 'webmock/rspec'
+require "fakefs"
+require "fakefs/spec_helpers"
 
 require 'pandler'
 require 'pandler/cli'
@@ -22,4 +24,13 @@ def capture_stdout
   rd.read
 ensure
   $stdout = old_stdout
+end
+
+def write_yumfile(content)
+  yumfile = "Yumfile"
+  File.open(yumfile, "w") do |f|
+    f.write content
+  end
+
+  File.expand_path(yumfile)
 end

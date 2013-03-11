@@ -20,4 +20,3 @@ bin/*
 !bin/pandle
 .vagrant
 vendor/bundle
-pandler/
