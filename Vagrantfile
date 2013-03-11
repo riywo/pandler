@@ -24,6 +24,8 @@ Vagrant::Config.run do |vagrant|
 
       config.vm.customize ["modifyvm", :id, "--memory", 512]
       config.vm.customize ["modifyvm", :id, "--cpus", 4]
+
+      config.vm.provision :shell, :path => "vagrant_file.sh"
     end
   end
 end
