@@ -6,7 +6,7 @@ describe Pandler::Yumfile do
 repo "base",   "http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=os"
 repo "update", "http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=update"
     EOF
-    write_yumfile content
+    write_file("Yumfile", content)
     subject.load "Yumfile"
   end
 

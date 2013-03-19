@@ -1,8 +1,10 @@
 describe Pandler::Mock do
-  before { @mock = Pandler::Mock.new }
+  before {
+    cache_topdir = File.expand_path("../../../.spec_cache", __FILE__)
+    @mock = Pandler::Mock.new(:cache_topdir => cache_topdir)
+  }
+
   subject { @mock }
-  its(:configdir) { should eq "./pandler/conf" }
-  its(:root) { should eq "pandler" }
 
   describe 'init' do
     subject { @mock.init }
