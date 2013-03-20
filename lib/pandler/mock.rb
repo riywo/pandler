@@ -14,6 +14,10 @@ class Pandler::Mock
     system "#{mock_cmd} --configdir #{configdir} --root #{root} --init"
   end
 
+  def clean
+    system "#{mock_cmd} --configdir #{configdir} --root #{root} --clean"
+  end
+
   private
 
   def init_cfg

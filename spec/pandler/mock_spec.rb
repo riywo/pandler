@@ -1,5 +1,5 @@
 describe Pandler::Mock do
-  before {
+  before(:all) {
     cache_topdir = File.expand_path("../../../.spec_cache", __FILE__)
     @mock = Pandler::Mock.new(:cache_topdir => cache_topdir)
   }
@@ -10,4 +10,8 @@ describe Pandler::Mock do
     subject { @mock.init }
     it { should be_true }
   end
+
+  after(:all) {
+    @mock.clean
+  }
 end

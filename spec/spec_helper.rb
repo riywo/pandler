@@ -42,8 +42,7 @@ module UserTempDir
     end
 
     describe_block.after :all do
-#      FileUtils.remove_entry_secure @root_dir
-      system "sudo rm -fr #{@root_dir}"
+      FileUtils.remove_entry_secure @root_dir
       Dir.chdir @old_pwd
     end
   end
