@@ -1,30 +1,30 @@
 class Pandler::Mock
-  attr_reader :basedir, :cache_topdir, :configdir, :root, :mock_cmd
+  attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :root, :mock_cmd
 
   def initialize(args = {})
     @basedir      = args[:basedir]      || File.expand_path("pandler")
     @cache_topdir = args[:cache_topdir] || "#{@basedir}/cache"
     @configdir    = args[:configdir]    || "#{@basedir}/conf"
+    @resultdir    = args[:resultdir]    || "#{@basedir}/log"
     @root         = args[:root]         || "mock"
     @mock_cmd     = args[:mock_cmd]     || "mock"
     init_cfg
   end
 
   def init
-    system "#{mock_cmd} --configdir #{configdir} --root #{root} --init"
+    system "#{mock_cmd} --configdir #{configdir} --root #{root} --resultdir #{resultdir} --init"
   end
 
   def clean
-    system "#{mock_cmd} --configdir #{configdir} --root #{root} --clean"
+    system "#{mock_cmd} --configdir #{configdir} --root #{root} --resultdir #{resultdir} --clean"
   end
 
   private
 
   def init_cfg
-    Dir.mkdir basedir unless File.exists? basedir
-    system "sudo chmod g+rws #{basedir}"
-    system "sudo chown :mock #{basedir}"
+    Dir.mkdir basedir   unless File.exists? basedir
     Dir.mkdir configdir unless File.exists? configdir
+    Dir.mkdir resultdir unless File.exists? resultdir
 
     open("#{configdir}/#{root}.cfg", 'w') do |f|
       f.write <<-"EOF"
