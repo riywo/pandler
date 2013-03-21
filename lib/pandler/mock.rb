@@ -1,3 +1,5 @@
+require "open3"
+
 class Pandler::Mock
   attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :repodir, :root, :mock_cmd
 
@@ -14,6 +16,10 @@ class Pandler::Mock
 
   def init
     system "#{mock_cmd} --configdir #{configdir} --root #{root} --resultdir #{resultdir} --init"
+  end
+
+  def shell(cmd)
+    Open3.popen3(mock_cmd, "--configdir", configdir, "--root", root, "--resultdir", resultdir, "-q", "--shell", cmd)
   end
 
   def clean
