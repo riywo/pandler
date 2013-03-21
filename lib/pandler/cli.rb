@@ -2,8 +2,9 @@ require "pandler"
 require "thor"
 
 class Pandler::CLI < Thor
-  def self.start(given_args=ARGV, config={})
+  def initialize(args=[], options={}, config={})
     super
+    @mock = config[:mock]
   end
 
   desc "version", "Display pandler version"
@@ -14,11 +15,12 @@ class Pandler::CLI < Thor
 
   desc "install", "Install"
   def install
-    puts "pandle install"
+    @mock.init
   end
 
   desc "exec", "Execute"
   def exec(*cmd)
-    puts cmd
+    stdin, stdout, stderr = @mock.shell(cmd.join(" "))
+    puts stdout.readlines.join('')
   end
 end

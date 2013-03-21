@@ -13,6 +13,6 @@ describe Pandler::CLI do
 
   describe "exec echo 'test'" do
     subject { pandle("exec echo 'test'") }
-#    it { should eq "test\n" }
+    it { should eq "test\n" }
   end
 end

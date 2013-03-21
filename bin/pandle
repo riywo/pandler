@@ -2,6 +2,7 @@
 
 $:.unshift File.expand_path("../../lib", __FILE__)
 
+require "pandler"
 require "pandler/cli"
 
-Pandler::CLI.start
+Pandler::CLI.start(ARGV, { :mock => Pandler::Mock.new })
