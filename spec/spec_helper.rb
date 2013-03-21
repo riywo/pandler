@@ -5,24 +5,30 @@ require 'tmpdir'
 require 'pandler'
 require 'pandler/cli'
 
-def pandle(args)
-  capture_stdout do
-    begin
-      Pandler::CLI.start(args.split(" "))
-    rescue SystemExit
+module PandleHelper
+  def self.included(example_group)
+    example_group.extend self
+  end
+
+  def pandle(args)
+    capture_stdout do
+      begin
+        Pandler::CLI.start(args.split(" "), { :mock => @mock })
+      rescue SystemExit
+      end
     end
   end
-end
 
-def capture_stdout
-  old_stdout = $stdout.dup
-  rd, wr = IO.method(:pipe).arity.zero? ? IO.pipe : IO.pipe("BINARY")
-  $stdout = wr
-  yield
-  wr.close
-  rd.read
-ensure
-  $stdout = old_stdout
+  def capture_stdout
+    old_stdout = $stdout.dup
+    rd, wr = IO.method(:pipe).arity.zero? ? IO.pipe : IO.pipe("BINARY")
+    $stdout = wr
+    yield
+    wr.close
+    rd.read
+  ensure
+    $stdout = old_stdout
+  end
 end
 
 module MockHelper
@@ -48,7 +54,7 @@ module MockHelper
   end
 end
 
-module UserTempDir
+module TempDirHelper
   def self.extended(example_group)
     example_group.use_tempdir(example_group)
   end
@@ -86,6 +92,6 @@ module UserTempDir
 end
 
 RSpec.configure do |config|
-  config.include UserTempDir
+  config.include TempDirHelper
 end
 
