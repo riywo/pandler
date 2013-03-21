@@ -41,7 +41,7 @@ config_opts['cache_topdir'] = '#{cache_topdir}'
 config_opts['root'] = '#{root}'
 config_opts['target_arch'] = 'x86_64'
 config_opts['legal_host_arches'] = ('x86_64',)
-config_opts['chroot_setup_cmd'] = 'install rpm shadow-utils'
+config_opts['chroot_setup_cmd'] = 'install pandler-deps'
 config_opts['dist'] = 'el6'  # only useful for --resultdir variable subst
 
 config_opts['plugin_conf']['ccache_enable'] = False
