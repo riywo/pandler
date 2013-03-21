@@ -43,14 +43,21 @@ module MockHelper
   def use_mock(describe_block)
     describe_block.before :all do
       repodir = "#{@old_pwd}/spec/resources/repo"
-      basedir = ENV["PANDLER_RSPEC_MOCK_CACHE"] == "1" ? "#{@old_pwd}/.spec_cache" : nil
+      basedir = "#{@old_pwd}/.spec_cache"
       @mock = Pandler::Mock.new(:basedir => basedir, :repodir => repodir)
-      @mock.init unless File.exists?("#{basedir}/#{@mock.root}")
+      @mock.init if init?
+    end
+  end
+
+  def init?
+    return true unless File.exists?("#{@mock.basedir}/#{@mock.root}")
+
+    if ENV["PANDLER_RSPEC_MOCK_INIT"] == "1"
+      ENV.delete "PANDLER_RSPEC_MOCK_INIT"
+      return true
     end
 
-    describe_block.after :all do
-      @mock.clean unless ENV["PANDLER_RSPEC_MOCK_CACHE"] == "1"
-    end
+    return nil
   end
 end
 
