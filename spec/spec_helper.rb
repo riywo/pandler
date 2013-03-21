@@ -25,6 +25,29 @@ ensure
   $stdout = old_stdout
 end
 
+module MockHelper
+  def self.extended(example_group)
+    example_group.use_mock(example_group)
+  end
+
+  def self.included(example_group)
+    example_group.extend self
+  end
+
+  def use_mock(describe_block)
+    describe_block.before :all do
+      repodir = "#{@old_pwd}/spec/resources/repo"
+      basedir = ENV["PANDLER_RSPEC_MOCK_CACHE"] == "1" ? "#{@old_pwd}/.spec_cache" : nil
+      @mock = Pandler::Mock.new(:basedir => basedir, :repodir => repodir)
+      @mock.init unless File.exists?("#{basedir}/#{@mock.root}")
+    end
+
+    describe_block.after :all do
+      @mock.clean unless ENV["PANDLER_RSPEC_MOCK_CACHE"] == "1"
+    end
+  end
+end
+
 module UserTempDir
   def self.extended(example_group)
     example_group.use_tempdir(example_group)
