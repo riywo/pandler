@@ -1,7 +1,7 @@
 describe Pandler::Mock do
   before(:all) {
-    cache_topdir = File.expand_path("../../../.spec_cache", __FILE__)
-    @mock = Pandler::Mock.new(:cache_topdir => cache_topdir)
+    repodir      = File.expand_path("../../../spec/resources/repo", __FILE__)
+    @mock = Pandler::Mock.new(:repodir => repodir)
   }
 
   subject { @mock }

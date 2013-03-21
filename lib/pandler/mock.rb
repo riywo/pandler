@@ -1,11 +1,12 @@
 class Pandler::Mock
-  attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :root, :mock_cmd
+  attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :repodir, :root, :mock_cmd
 
   def initialize(args = {})
     @basedir      = args[:basedir]      || File.expand_path("pandler")
     @cache_topdir = args[:cache_topdir] || "#{@basedir}/cache"
     @configdir    = args[:configdir]    || "#{@basedir}/conf"
     @resultdir    = args[:resultdir]    || "#{@basedir}/log"
+    @repodir      = args[:repodir]      || "#{@basedir}/repo"
     @root         = args[:root]         || "mock"
     @mock_cmd     = args[:mock_cmd]     || "mock"
     init_cfg
@@ -22,21 +23,24 @@ class Pandler::Mock
   private
 
   def init_cfg
-    Dir.mkdir basedir   unless File.exists? basedir
-    Dir.mkdir configdir unless File.exists? configdir
-    Dir.mkdir resultdir unless File.exists? resultdir
+    Dir.mkdir basedir      unless File.exists? basedir
+    Dir.mkdir configdir    unless File.exists? configdir
+    Dir.mkdir resultdir    unless File.exists? resultdir
+    Dir.mkdir cache_topdir unless File.exists? cache_topdir
 
     open("#{configdir}/#{root}.cfg", 'w') do |f|
       f.write <<-"EOF"
 config_opts['basedir'] = '#{basedir}'
 config_opts['cache_topdir'] = '#{cache_topdir}'
-config_opts['plugin_conf']['root_cache_enable'] = False
-
 config_opts['root'] = '#{root}'
 config_opts['target_arch'] = 'x86_64'
 config_opts['legal_host_arches'] = ('x86_64',)
 config_opts['chroot_setup_cmd'] = 'install rpm shadow-utils'
 config_opts['dist'] = 'el6'  # only useful for --resultdir variable subst
+
+config_opts['plugin_conf']['ccache_enable'] = False
+config_opts['plugin_conf']['yum_cache_enable'] = False
+config_opts['plugin_conf']['root_cache_enable'] = False
 
 config_opts['yum.conf'] = """
 [main]
@@ -52,21 +56,10 @@ syslog_ident=mock
 syslog_device=
 
 # repos
-[base]
-name=BaseOS
+[pandler]
+name=Pandler
 enabled=1
-mirrorlist=http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=os
-failovermethod=priority
-
-[updates]
-name=updates
-enabled=1
-mirrorlist=http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=updates
-failovermethod=priority
-
-[epel]
-name=epel
-mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=x86_64
+baseurl=file://#{repodir}
 failovermethod=priority
 """
       EOF

@@ -20,3 +20,4 @@ bin/*
 !bin/pandle
 .vagrant
 vendor/bundle
+spec/resources/repo

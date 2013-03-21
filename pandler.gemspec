@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency 'thor', '>= 0.13.6'
+  gem.add_dependency 'fpm'
 
   gem.add_development_dependency 'rake', '>= 0.9.2.2'
   gem.add_development_dependency 'rspec'
