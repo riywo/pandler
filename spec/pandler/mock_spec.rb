@@ -2,8 +2,7 @@ describe Pandler::Mock do
   include MockHelper
   describe 'shell(echo "test")' do
     subject {
-      stdin, stdout, stderr = @mock.shell('echo "test"')
-      stdout.readlines.join('')
+      capture_stdout { @mock.shell('echo "test"') }
     }
     it { should eq "test\n" }
   end

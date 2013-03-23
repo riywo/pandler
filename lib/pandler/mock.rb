@@ -44,7 +44,11 @@ class Pandler::Mock
   def mock(*args)
     init_cfg
     args.concat(opts)
-    system(mock_cmd, *args)
+    exec(mock_cmd, *args)
+  end
+
+  def exec(*cmd)
+    Kernel.system(*cmd)
   end
 
   def opts
