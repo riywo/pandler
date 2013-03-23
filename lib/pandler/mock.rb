@@ -1,7 +1,7 @@
 require "open3"
 
 class Pandler::Mock
-  attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :repodir, :root, :mock_cmd
+  attr_reader :basedir, :cache_topdir, :configdir, :resultdir, :repodir, :root, :mock_cmd, :init_pkgs
 
   def initialize(args = {})
     @basedir      = args[:basedir]      || File.expand_path("pandler")
@@ -11,22 +11,45 @@ class Pandler::Mock
     @repodir      = args[:repodir]      || "#{@basedir}/repo"
     @root         = args[:root]         || "mock"
     @mock_cmd     = args[:mock_cmd]     || "mock"
-    init_cfg
+    @init_pkgs    = args[:init_pkgs]    || ["rpm", "shadow-utils"]
   end
 
-  def init
-    system "#{mock_cmd} --configdir #{configdir} --root #{root} --resultdir #{resultdir} --init"
+  def init(*pkgs)
+    @init_pkgs = pkgs if pkgs.size != 0
+    mock("--init")
+  end
+
+  def install(*pkgs)
+    mock("--install", *pkgs)
+  end
+
+  def remove(*pkgs)
+    mock("--remove", *pkgs)
   end
 
   def shell(cmd)
-    Open3.popen3(mock_cmd, "--configdir", configdir, "--root", root, "--resultdir", resultdir, "-q", "--shell", cmd)
+    mock("-q", "--shell", cmd)
+  end
+
+  def scrub(type)
+    mock("--scrub", type)
   end
 
   def clean
-    system "#{mock_cmd} --configdir #{configdir} --root #{root} --resultdir #{resultdir} --clean"
+    mock("--clean")
   end
 
   private
+
+  def mock(*args)
+    init_cfg
+    args.concat(opts)
+    system(mock_cmd, *args)
+  end
+
+  def opts
+    return "--no-cleanup-after", "--configdir", configdir, "--root", root, "--resultdir", resultdir
+  end
 
   def init_cfg
     Dir.mkdir basedir      unless File.exists? basedir
@@ -41,7 +64,7 @@ config_opts['cache_topdir'] = '#{cache_topdir}'
 config_opts['root'] = '#{root}'
 config_opts['target_arch'] = 'x86_64'
 config_opts['legal_host_arches'] = ('x86_64',)
-config_opts['chroot_setup_cmd'] = 'install pandler-deps'
+config_opts['chroot_setup_cmd'] = 'install #{init_pkgs.join(" ")}'
 config_opts['dist'] = 'el6'  # only useful for --resultdir variable subst
 
 config_opts['plugin_conf']['ccache_enable'] = False
