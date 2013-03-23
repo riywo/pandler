@@ -1,4 +1,5 @@
 describe Pandler::Yumfile do
+  include TempDirHelper
   subject { Pandler::Yumfile.new }
 
   before do

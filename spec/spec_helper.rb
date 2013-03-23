@@ -109,7 +109,3 @@ module TempDirHelper
   end
 end
 
-RSpec.configure do |config|
-  config.include TempDirHelper
-end
-

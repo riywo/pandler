@@ -1,4 +1,5 @@
 describe Pandler::Mock do
+  include TempDirHelper
   include MockHelper
   describe 'shell(echo "test")' do
     subject {
