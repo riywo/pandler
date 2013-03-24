@@ -43,36 +43,6 @@ module PandleHelper
   end
 end
 
-module MockHelper
-  def self.extended(example_group)
-    example_group.use_mock(example_group)
-  end
-
-  def self.included(example_group)
-    example_group.extend self
-  end
-
-  def use_mock(describe_block)
-    describe_block.before :all do
-      repodir = "#{@old_pwd}/spec/resources/repo"
-      basedir = "#{@old_pwd}/.spec_cache"
-      @mock = Pandler::Mock.new(:basedir => basedir, :repodir => repodir)
-      @mock.init if init?
-    end
-  end
-
-  def init?
-    return true unless File.exists?("#{@mock.basedir}/#{@mock.root}")
-
-    if ENV["PANDLER_RSPEC_MOCK_INIT"] == "1"
-      ENV.delete "PANDLER_RSPEC_MOCK_INIT"
-      return true
-    end
-
-    return nil
-  end
-end
-
 module TempDirHelper
   def self.extended(example_group)
     example_group.use_tempdir(example_group)
