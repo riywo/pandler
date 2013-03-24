@@ -17,9 +17,10 @@ ensure
   $stdout = old_stdout
 end
 
-class Pandler::Mock
-  def exec(*cmd)
-    Open3.popen3(*cmd) do |stdin, stdout, stderr|
+class Pandler::Chroot
+  def chroot_run_cmd(*cmd)
+    chroot_cmd = ["chroot", root_dir] + cmd
+    Open3.popen3(*chroot_cmd) do |stdin, stdout, stderr|
       stdin.close_write
       $stdout.puts(stdout.read)
       $stderr.puts(stdout.read)

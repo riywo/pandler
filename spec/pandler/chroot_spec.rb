@@ -73,7 +73,12 @@ describe Pandler::Chroot do
   describe "install first time" do
     before(:all) { @chroot.install("pandler-test") }
     it "should execute /pandler-test" do
-      `chroot #{@chroot.root_dir} /pandler-test`.should eq 'pandler test'
+      Kernel.system("chroot", @chroot.root_dir, "/pandler-test").should be_true
     end
+  end
+
+  describe "exec /pandler-test" do
+    subject { capture_stdout { @chroot.execute("/pandler-test") } }
+    it { should eq "pandler test\n" }
   end
 end

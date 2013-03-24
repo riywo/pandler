@@ -32,16 +32,26 @@ class Pandler::Chroot
     yum_install(*pkgs)
   end
 
+  def execute(*cmd)
+    mount_all
+    chroot_run_cmd(*cmd)
+    umount_all
+  end
+
   private
 
   def yum_install(*pkgs)
     cmd = ["yum", "--installroot", root_dir, "install"] + pkgs
-    system(*cmd)
+    run_cmd(*cmd)
   end
 
-  def system(*cmd)
+  def run_cmd(*cmd)
     ret = Kernel.system(*cmd)
     raise "command failed(ret: #{ret}) '#{cmd.join(" ")}'" unless ret
+  end
+
+  def chroot_run_cmd(*cmd)
+    run_cmd("chroot", root_dir, *cmd)
   end
 
   def write_file(path, content)
@@ -58,7 +68,7 @@ class Pandler::Chroot
     cmd = ["mount", "-n", "-t", entry[:type]]
     cmd.concat ["-o", entry[:options]] if entry.has_key?(:options)
     cmd.concat ["pandler_mount_#{entry[:type]}", real_path(entry[:path])]
-    system(*cmd)
+    run_cmd(*cmd)
   end
 
   def umount_all
@@ -69,7 +79,7 @@ class Pandler::Chroot
 
   def umount(entry)
     cmd = ["umount", "-n", "-l", real_path(entry[:path])]
-    system(*cmd)
+    run_cmd(*cmd)
   end
 
   def setup_dirs
@@ -134,7 +144,7 @@ for i in devFiles:
         os.mknod(i[2], i[0], i[1])
 sys.exit(0)
     PYTHON
-    system("python", "-c", python_code)
+    run_cmd("python", "-c", python_code)
 
     FileUtils.symlink("/proc/self/fd/0", real_path("/dev/stdin"), { :force => true })
     FileUtils.symlink("/proc/self/fd/1", real_path("/dev/stdout"), { :force => true })
