@@ -25,6 +25,7 @@ class Pandler::Chroot
     setup_dirs
     setup_files
     setup_devs
+    mount_all
     true
   end
 
@@ -33,9 +34,12 @@ class Pandler::Chroot
   end
 
   def execute(*cmd)
-    mount_all
     chroot_run_cmd(*cmd)
+  end
+
+  def clean
     umount_all
+    FileUtils.remove_entry_secure root_dir
   end
 
   private
@@ -65,10 +69,16 @@ class Pandler::Chroot
   end
 
   def mount(entry)
-    cmd = ["mount", "-n", "-t", entry[:type]]
-    cmd.concat ["-o", entry[:options]] if entry.has_key?(:options)
-    cmd.concat ["pandler_mount_#{entry[:type]}", real_path(entry[:path])]
-    run_cmd(*cmd)
+    unless mounted?(entry)
+      cmd = ["mount", "-t", entry[:type]]
+      cmd.concat ["-o", entry[:options]] if entry.has_key?(:options)
+      cmd.concat ["pandler_mount", real_path(entry[:path])]
+      run_cmd(*cmd)
+    end
+  end
+
+  def mounted?(entry)
+    `mount`.split("\n").map { |line| line.split[2] }.include?(real_path(entry[:path]))
   end
 
   def umount_all
@@ -78,8 +88,10 @@ class Pandler::Chroot
   end
 
   def umount(entry)
-    cmd = ["umount", "-n", "-l", real_path(entry[:path])]
-    run_cmd(*cmd)
+    if mounted?(entry)
+      cmd = ["umount", "-l", real_path(entry[:path])]
+      run_cmd(*cmd)
+    end
   end
 
   def setup_dirs

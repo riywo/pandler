@@ -6,7 +6,7 @@ class Pandler::CLI < Thor
 
   def initialize(args=[], options={}, config={})
     super
-    @mock    = config[:mock]    || Pandler::Mock.new
+    @chroot = Pandler::Chroot.new
 #    @yumrepo = config[:yumrepo] || Pandler::Yumrepo.new(:mock => @mock, :yumfile => options[:yumfile])
   end
 
@@ -17,8 +17,9 @@ class Pandler::CLI < Thor
   end
 
   desc "install", "Install"
-  def install
-    @mock.init
+  def install(*pkgs)
+    @chroot.init
+    @chroot.install(*pkgs)
 #    @yumrepo.prepare_install
 #
 #    if @mock.not_init?
@@ -33,11 +34,11 @@ class Pandler::CLI < Thor
 
   desc "clean", "Clean"
   def clean
-    @mock.clean
+    @chroot.clean
   end
 
   desc "exec", "Execute"
   def exec(*cmd)
-    @mock.shell(cmd.join(" "))
+    @chroot.execute(*cmd)
   end
 end

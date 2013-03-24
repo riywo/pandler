@@ -81,4 +81,6 @@ describe Pandler::Chroot do
     subject { capture_stdout { @chroot.execute("/pandler-test") } }
     it { should eq "pandler test\n" }
   end
+
+  after(:all) { @chroot.clean }
 end
