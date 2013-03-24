@@ -1,3 +1,4 @@
+=begin
 describe Pandler::Mock do
   include TempDirHelper
   include MockHelper
@@ -8,3 +9,4 @@ describe Pandler::Mock do
     it { should eq "test\n" }
   end
 end
+=end
