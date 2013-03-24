@@ -28,12 +28,21 @@ class Pandler::Chroot
     true
   end
 
-  def yum(*cmd)
-    yum_cmd = ["yum", "--installroot", root_dir] + cmd
-    system(*yum_cmd)
+  def install(*pkgs)
+    yum_install(*pkgs)
   end
 
   private
+
+  def yum_install(*pkgs)
+    cmd = ["yum", "--installroot", root_dir, "install"] + pkgs
+    system(*cmd)
+  end
+
+  def system(*cmd)
+    ret = Kernel.system(*cmd)
+    raise "command failed(ret: #{ret}) '#{cmd.join(" ")}'" unless ret
+  end
 
   def write_file(path, content)
     open(real_path(path), "w") { |f| f.write content }
@@ -107,7 +116,7 @@ class Pandler::Chroot
     FileUtils.mkdir_p real_path("/dev/shm")
 
     python_code = <<-PYTHON
-import os, os.path, stat
+import sys, os, os.path, stat
 devFiles = [
     (stat.S_IFCHR | 0666, os.makedev(1, 3), "#{real_path("/dev/null")}"),
     (stat.S_IFCHR | 0666, os.makedev(1, 7), "#{real_path("/dev/full")}"),
@@ -123,6 +132,7 @@ for i in devFiles:
         continue
     else:
         os.mknod(i[2], i[0], i[1])
+sys.exit(0)
     PYTHON
     system("python", "-c", python_code)
 

@@ -16,7 +16,10 @@ describe Pandler::Chroot do
   end
 
   describe "init" do
-    before(:all) { @chroot.init }
+    before :all do
+      @chroot.init
+      FileUtils.symlink("../spec/resources/yumrepo", @base_dir, { :force => true })
+    end
     it "should create directories" do
       [
         '/var/lib/rpm',
@@ -67,6 +70,13 @@ describe Pandler::Chroot do
       ].each do |path|
         Pathname(@chroot.real_path(path)).should exist
       end
+    end
+  end
+
+  describe "install first time" do
+    before(:all) { @chroot.install("pandler-test") }
+    it "should execute /pandler-test" do
+      `chroot #{@chroot.root_dir} /pandler-test`.should eq 'pandler test'
     end
   end
 end
