@@ -3,12 +3,12 @@ require "pathname"
 describe Pandler::Chroot do
   before :all do
     @base_dir = File.expand_path("../../../.spec_cache", __FILE__)
-    @chroot = Pandler::Chroot.new(:base_dir => @base_dir)
+    yumrepo = "file://" + File.expand_path("../../resources/yumrepo", __FILE__)
+    @chroot = Pandler::Chroot.new(:base_dir => @base_dir, :yumrepo => yumrepo)
   end
 
   subject { @chroot }
   its(:root_dir) { should eq "#{@base_dir}/root" }
-  its(:yumrepo)  { should eq "file://#{@base_dir}/yumrepo" }
 
   describe "chroot file path" do
     subject { @chroot.real_path("/") }
@@ -16,10 +16,7 @@ describe Pandler::Chroot do
   end
 
   describe "init" do
-    before :all do
-      @chroot.init
-      FileUtils.symlink("../spec/resources/yumrepo", @base_dir, { :force => true })
-    end
+    before(:all) { @chroot.init }
     it "should create directories" do
       [
         '/var/lib/rpm',
