@@ -13,12 +13,8 @@ rpm "basesystem"
   end
 
   subject { @yumfile }
-
-  describe "load" do
-    before(:all) { @yumfile.load }
-    it { should have(2).repos }
-    its(:repos) { should have_key 'base' }
-    its(:repos) { should have_key 'update' }
-    its(:rpms)  { should have_key 'basesystem' }
-  end
+  it { should have(2).repos }
+  its(:repos) { should have_key 'base' }
+  its(:repos) { should have_key 'update' }
+  its(:rpms)  { should have_key 'basesystem' }
 end

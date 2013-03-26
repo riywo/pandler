@@ -1,31 +1,47 @@
 require "erb"
 require "open3"
+require "yaml"
 
 class Pandler::Yumrepo
-  attr_reader :base_dir, :repo_dir, :yumfile_path
+  attr_reader :base_dir, :repo_dir, :yumfile_path, :lockfile_path
   def initialize(args = {})
-    @base_dir     = args[:base_dir]     || File.expand_path("pandler")
-    @repo_dir     = args[:repo_dir]     || File.join(base_dir, "yumrepo")
-    @yumfile_path = args[:yumfile_path] || File.expand_path("Yumfile")
+    @base_dir      = args[:base_dir]      || File.expand_path("pandler")
+    @repo_dir      = args[:repo_dir]      || File.join(base_dir, "yumrepo")
+    @yumfile_path  = args[:yumfile_path]  || File.expand_path("Yumfile")
+    @lockfile_path = args[:lockfile_path] || yumfile_path + ".lock"
 
     FileUtils.mkdir_p base_dir
     FileUtils.mkdir_p repo_dir
     @yumfile = Pandler::Yumfile.new(yumfile_path)
   end
 
-  def yumfile
-    @yumfile.load
+  def save_lockfile
+    open(lockfile_path, "w") do |f|
+      YAML.dump({
+        "repos" => repos,
+        "rpms"  => rpms.keys,
+        "specs" => @specs,
+      }, f)
+    end
   end
 
   def createrepo
     setup_dirs
     setup_files
-    yum_download(yumfile.rpms.keys)
+    yum_download(rpms.keys)
     system("createrepo", "-v", repo_dir)
   end
 
   def install_pkgs
-    @install_pkgs
+    @specs.map { |name, spec| "#{name}-#{spec[:version]}.#{spec[:arch]}" }
+  end
+
+  def repos
+    @yumfile.repos
+  end
+
+  def rpms
+    @yumfile.rpms
   end
 
   private
@@ -39,7 +55,7 @@ class Pandler::Yumrepo
   end
 
   def yum_download(rpms)
-    @install_pkgs = []
+    @specs = {}
     Open3.popen3(*yum_cmd(rpms)) do |stdin, stdout, stderr|
       stdin.close
       stdout.read.each do |line|
@@ -48,8 +64,9 @@ class Pandler::Yumrepo
         next if data.size != 5
         next if ["Package", "Total", "Installed"].index data[0]
         name, arch, version = data
-        version = version.split(":", 2).reverse[0]
-        install_pkgs << "#{name}-#{version}.#{arch}"
+        version, epoch = version.split(":", 2).reverse
+        @specs[name] = { :version => version, :arch => arch }
+        @specs[name][:epoch] = epoch.to_i unless epoch.nil?
       end
     end
     Dir.chdir(repo_dir) do
@@ -57,6 +74,7 @@ class Pandler::Yumrepo
       FileUtils.mkdir_p repo_dir
       FileUtils.ln_s(pkgs, ".", { :force => true })
     end
+    save_lockfile
   end
 
   def setup_dirs
@@ -95,7 +113,7 @@ assumeyes=1
 syslog_ident=pandler
 syslog_device=
 plugins=1
-<% yumfile.repos.each { |repo, url| %>
+<% repos.each { |repo, url| %>
 [<%= repo %>]
 name=<%= repo  %>
 enabled=1

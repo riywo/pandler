@@ -22,13 +22,7 @@ class Pandler::CLI < Thor
     @yumrepo.createrepo
     @chroot.install(*@yumrepo.install_pkgs)
     
-    
-#    if @mock.not_init?
-#      @mock.init(@yumrepo.locked_pkgs)
-#    else
-#      @mock.install(@yumrepo.install_pkgs)
-#      @mock.remove(@yumrepo.remove_pkgs)
-#    end
+#    @chroot.remove(@yumrepo.remove_pkgs)
 #
 #    @yumrepo.save_lockfile
   end

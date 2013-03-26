@@ -38,12 +38,8 @@ rpm  "pandler-test"
   its(:yumfile_path)  { should eq File.expand_path("Yumfile") }
   it("should have base_dir") { Pathname(@yumrepo.base_dir).should exist }
   it("should have repo_dir") { Pathname(@yumrepo.repo_dir).should exist }
-
-  describe "yumfile" do
-    subject { @yumrepo.yumfile }
-    its(:repos) { should have_key "test" }
-    its(:rpms)  { should have_key "pandler-test" }
-  end
+  its(:repos) { should have_key "test" }
+  its(:rpms)  { should have_key "pandler-test" }
 
   describe "createrepo" do
     before :all do
