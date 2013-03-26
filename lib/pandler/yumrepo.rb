@@ -1,11 +1,11 @@
 require "erb"
+require "open3"
 
 class Pandler::Yumrepo
-  attr_reader :base_dir, :repo_dir, :yumfile_path, :tmp_dir
+  attr_reader :base_dir, :repo_dir, :yumfile_path
   def initialize(args = {})
     @base_dir     = args[:base_dir]     || File.expand_path("pandler")
     @repo_dir     = args[:repo_dir]     || File.join(base_dir, "yumrepo")
-    @tmp_dir      = args[:tmp_dir]      || File.join(base_dir, "tmp")
     @yumfile_path = args[:yumfile_path] || File.expand_path("Yumfile")
 
     FileUtils.mkdir_p base_dir
@@ -20,10 +20,8 @@ class Pandler::Yumrepo
   def createrepo
     setup_dirs
     setup_files
-    rpms = yumfile.rpms.keys
-    yum_download(*rpms)
+    yum_download(yumfile.rpms.keys)
     system("createrepo", "-v", repo_dir)
-    FileUtils.remove_entry_secure(tmp_dir)
   end
 
   def install_pkgs
@@ -32,16 +30,37 @@ class Pandler::Yumrepo
 
   private
 
-  def yum_download(*rpms)
-    system("yum", "--disableplugin=*", "--enableplugin=downloadonly", "--installroot", tmp_dir, "--downloadonly", "install", *rpms)
-    pkgs = Dir.glob("#{tmp_dir}/var/cache/yum/**/packages/*.rpm")
-    @install_pkgs = pkgs.map { |path| File.basename(path, ".rpm") }
-    FileUtils.mkdir_p repo_dir
-    FileUtils.mv(pkgs, repo_dir)
+  def cache_dir
+    File.join(repo_dir, "cache")
+  end
+
+  def yum_cmd(rpms)
+    ["yum", "--disableplugin=*", "--enableplugin=downloadonly", "--installroot", cache_dir, "--downloadonly", "install", *rpms]
+  end
+
+  def yum_download(rpms)
+    @install_pkgs = []
+    Open3.popen3(*yum_cmd(rpms)) do |stdin, stdout, stderr|
+      stdin.close
+      stdout.read.each do |line|
+        # parse yum install output
+        data = line.split(nil, 5)
+        next if data.size != 5
+        next if ["Package", "Total", "Installed"].index data[0]
+        name, arch, version = data
+        version = version.split(":", 2).reverse[0]
+        install_pkgs << "#{name}-#{version}.#{arch}"
+      end
+    end
+    Dir.chdir(repo_dir) do
+      pkgs = Dir.glob("cache/var/cache/yum/**/packages/*.rpm")
+      FileUtils.mkdir_p repo_dir
+      FileUtils.ln_s(pkgs, ".", { :force => true })
+    end
   end
 
   def setup_dirs
-    FileUtils.mkdir_p tmp_dir
+    FileUtils.mkdir_p cache_dir
     dirs = [
       '/var/lib/rpm',
       '/var/lib/yum',
@@ -54,12 +73,12 @@ class Pandler::Yumrepo
       '/etc/yum',
     ]
     dirs.each do |dir|
-      FileUtils.mkdir_p(File.join(tmp_dir, dir))
+      FileUtils.mkdir_p(File.join(cache_dir, dir))
     end
   end
 
   def setup_files
-    open(File.join(tmp_dir, "/etc/yum/yum.conf"), "w") { |f| f.write yum_conf }
+    open(File.join(cache_dir, "/etc/yum/yum.conf"), "w") { |f| f.write yum_conf }
   end
 
   def yum_conf
