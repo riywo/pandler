@@ -1,19 +1,24 @@
 describe Pandler::Yumfile do
   include TempDirHelper
-  subject { Pandler::Yumfile.new }
 
-  before do
+  before :all do
     content = <<-EOF
 repo "base",   "http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=os"
 repo "update", "http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=update"
+
+rpm "basesystem"
     EOF
     write_file("Yumfile", content)
-    subject.load "Yumfile"
+    @yumfile = Pandler::Yumfile.new("Yumfile")
   end
 
-  it "can load from a file" do
-    should have(2).repos
-    subject.repos.should have_key 'base'
-    subject.repos.should have_key 'update'
+  subject { @yumfile }
+
+  describe "load" do
+    before(:all) { @yumfile.load }
+    it { should have(2).repos }
+    its(:repos) { should have_key 'base' }
+    its(:repos) { should have_key 'update' }
+    its(:rpms)  { should have_key 'basesystem' }
   end
 end

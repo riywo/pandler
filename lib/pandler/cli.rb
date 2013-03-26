@@ -20,7 +20,7 @@ class Pandler::CLI < Thor
   def install(*pkgs)
     @chroot.init
     @chroot.install(*pkgs)
-#    @yumrepo.prepare_install
+#    @yumrepo.createrepo
 #
 #    if @mock.not_init?
 #      @mock.init(@yumrepo.locked_pkgs)
