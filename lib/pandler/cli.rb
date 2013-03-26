@@ -7,7 +7,7 @@ class Pandler::CLI < Thor
   def initialize(args=[], options={}, config={})
     super
     @chroot = Pandler::Chroot.new
-#    @yumrepo = config[:yumrepo] || Pandler::Yumrepo.new(:mock => @mock, :yumfile => options[:yumfile])
+    @yumrepo = Pandler::Yumrepo.new
   end
 
   desc "version", "Display pandler version"
@@ -17,11 +17,12 @@ class Pandler::CLI < Thor
   end
 
   desc "install", "Install"
-  def install(*pkgs)
+  def install
     @chroot.init
-    @chroot.install(*pkgs)
-#    @yumrepo.createrepo
-#
+    @yumrepo.createrepo
+    @chroot.install(*@yumrepo.install_pkgs)
+    
+    
 #    if @mock.not_init?
 #      @mock.init(@yumrepo.locked_pkgs)
 #    else

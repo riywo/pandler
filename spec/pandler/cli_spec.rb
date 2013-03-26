@@ -1,6 +1,5 @@
 describe Pandler::CLI do
   include TempDirHelper
-#  include MockHelper
   include PandleHelper
   describe "version" do
     it "displays gem version" do
