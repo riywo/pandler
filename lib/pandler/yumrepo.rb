@@ -26,12 +26,18 @@ class Pandler::Yumrepo
     FileUtils.remove_entry_secure(tmp_dir)
   end
 
+  def install_pkgs
+    @install_pkgs
+  end
+
   private
 
   def yum_download(*rpms)
     system("yum", "--disableplugin=*", "--enableplugin=downloadonly", "--installroot", tmp_dir, "--downloadonly", "install", *rpms)
+    pkgs = Dir.glob("#{tmp_dir}/var/cache/yum/**/packages/*.rpm")
+    @install_pkgs = pkgs.map { |path| File.basename(path, ".rpm") }
     FileUtils.mkdir_p repo_dir
-    FileUtils.mv(Dir.glob("#{tmp_dir}/var/cache/yum/**/packages/*.rpm"), repo_dir)
+    FileUtils.mv(pkgs, repo_dir)
   end
 
   def setup_dirs
