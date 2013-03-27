@@ -47,21 +47,34 @@ class Pandler::Yumrepo
   class Solver
     attr_reader :install_pkgs, :remove_pkgs, :cache_dir
     def initialize(yumfile_path, lockfile_path, cache_dir)
+      @yumfile_path = yumfile_path
+      @lockfile_path = lockfile_path
+      @cache_dir = cache_dir
       @yumfile   = Pandler::Yumfile.new(yumfile_path)
       @lockfile  = File.exists?(lockfile_path) ? YAML.load_file(lockfile_path) : {}
-      @cache_dir = cache_dir
     end
 
     def run
       setup_dirs
       setup_files
       setup_pkgs
+      write_lockfile
     end
 
     private
 
     def repos
       @yumfile.repos
+    end
+
+    def write_lockfile
+      open(@lockfile_path, "w") do |f|
+        YAML.dump({
+          :repos => repos,
+          :rpms  => @yumfile.rpms, #temp
+          :specs => @zero_install_pkgs,
+        }, f)
+      end
     end
 
     def setup_pkgs
