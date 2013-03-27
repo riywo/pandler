@@ -4,27 +4,14 @@ class Pandler::Yumfile
   def initialize(filename)
     @repos = {}
     @rpms = {}
-    @filename = filename
-    @loaded = false
-  end
-
-  def repos
-    load_file
-    @repos
-  end
-
-  def rpms
-    load_file
-    @rpms
+    load_file(filename) if File.exists? filename
   end
 
   private
 
-  def load_file
-    self if @loaded
-    contents = File.read(@filename)
-    instance_eval(contents, @filename, 1)
-    @loaded = true
+  def load_file(filename)
+    contents = File.read(filename)
+    instance_eval(contents, filename, 1)
     self
   end
 
@@ -32,8 +19,9 @@ class Pandler::Yumfile
     @repos[name] = url
   end
 
-  def rpm(name)
-    @rpms[name] = name
+  def rpm(name, version = nil)
+    @rpms[name] = {
+      :version => version,
+    }
   end
-
 end

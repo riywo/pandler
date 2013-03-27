@@ -5,14 +5,32 @@ describe Pandler::Yumrepo do
   include TempDirHelper
   before :all do
     @base_dir = File.expand_path("repo")
-    @yumrepo = Pandler::Yumrepo.new(:base_dir => @base_dir)
     test_port = 9999
 
     yumfile = <<-EOF
 repo "test",   "http://localhost:#{test_port}"
 rpm  "pandler-test"
+rpm  "pandler-test-a"
     EOF
     write_file("Yumfile", yumfile)
+    yumfile_lock = <<-EOF
+:rpms:
+  pandler-test-a:
+  pandler-test:
+:specs:
+  pandler-test-a:
+    :arch: x86_64
+    :version: 0.0.1-1
+    :epoch: 1
+  pandler-test:
+    :arch: x86_64
+    :version: 0.0.1-1
+    :epoch: 1
+:repos:
+  test: http://localhost:#{test_port}
+    EOF
+    write_file("Yumfile.lock", yumfile_lock)
+    @yumrepo = Pandler::Yumrepo.new(:base_dir => @base_dir)
 
     @server_thread = Thread.new do
       server = WEBrick::HTTPServer.new(
@@ -38,8 +56,6 @@ rpm  "pandler-test"
   its(:yumfile_path)  { should eq File.expand_path("Yumfile") }
   it("should have base_dir") { Pathname(@yumrepo.base_dir).should exist }
   it("should have repo_dir") { Pathname(@yumrepo.repo_dir).should exist }
-  its(:repos) { should have_key "test" }
-  its(:rpms)  { should have_key "pandler-test" }
 
   describe "createrepo" do
     before :all do
@@ -47,6 +63,6 @@ rpm  "pandler-test"
     end
     it("should have repodata") { Pathname("#{@yumrepo.repo_dir}/repodata").should exist }
     it("should have pandle-test") { Pathname("#{@yumrepo.repo_dir}/pandler-test-0.0.1-1.x86_64.rpm").should exist }
-    its(:install_pkgs) { should eq ["pandler-test-0.0.1-1.x86_64"] }
+    its(:install_pkgs) { should eq ["pandler-test-0.0.1-1.x86_64", "pandler-test-a-0.0.1-1.x86_64"] }
   end
 end
