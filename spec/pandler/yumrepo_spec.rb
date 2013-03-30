@@ -47,6 +47,13 @@ specs:
     arch: x86_64
     release: "1"
     version: 0.0.1
+  pandler-test-dep-required-required-0.0.1-1.x86_64:
+    version: 0.0.1
+    relatedto:
+    - pandler-test-dep-required-0.0.1-1.x86_64
+    name: pandler-test-dep-required-required
+    release: "1"
+    arch: x86_64
 rpms:
 - pandler-test
 - pandler-test-a
@@ -93,6 +100,18 @@ rpms:
        "pandler-test-dep-a-0.0.1-1.x86_64",
        "pandler-test-dep-b-0.0.1-1.x86_64",
        "pandler-test-dep-required-0.0.1-1.x86_64",
+       "pandler-test-dep-required-required-0.0.1-1.x86_64",
     ] }
+    it "should come from Yumfile rpms" do
+      subject.specs["pandler-test-dep-required-0.0.1-1.x86_64"]["comesfrom"].should eq [
+       "pandler-test-dep-a-0.0.1-1.x86_64",
+       "pandler-test-dep-b-0.0.1-1.x86_64",
+      ]
+      subject.specs["pandler-test-dep-required-required-0.0.1-1.x86_64"]["comesfrom"].should eq [
+       "pandler-test-dep-a-0.0.1-1.x86_64",
+       "pandler-test-dep-b-0.0.1-1.x86_64",
+      ]
+    end
+    it { system "cat Yumfile.lock" }
   end
 end

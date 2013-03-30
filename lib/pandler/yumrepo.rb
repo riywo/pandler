@@ -33,6 +33,10 @@ class Pandler::Yumrepo
     specs.sort_by { |package, spec| spec["name"] }.map { |package, spec| package }
   end
 
+  def specs
+    @specs
+  end
+
   private
 
   def run_cmd(*cmd)
@@ -46,10 +50,6 @@ class Pandler::Yumrepo
 
   def rpms
     @yumfile.rpms
-  end
-
-  def specs
-    @specs
   end
 
   def read_lockfile
@@ -83,6 +83,7 @@ class Pandler::Yumrepo
 
   def update_specs
     @specs = read_yum_log
+    solve_comesfrom
   end
 
   def read_yum_log
@@ -98,6 +99,32 @@ class Pandler::Yumrepo
       end
     end
     results
+  end
+
+  def solve_comesfrom
+    @specs.each do |package, spec|
+      next unless spec.has_key? "relatedto"
+
+      checked_pkg = {}
+      @specs[package]["comesfrom"] = comesfrom(package, checked_pkg)
+    end
+  end
+
+  def comesfrom(pkgs, checked_pkg)
+    rpm_list = []
+    pkgs.each do |pkg|
+      next if checked_pkg[pkg]
+
+      checked_pkg[pkg] = true
+      spec = @specs[pkg]
+      if spec.has_key? "relatedto"
+        spec["relatedto"].each do |related|
+          rpm_list.push related unless rpms.index(@specs[related]["name"]).nil?
+        end
+        rpm_list += comesfrom(spec["relatedto"], checked_pkg)
+      end
+    end
+    rpm_list.uniq
   end
 
   def yum(*args)
