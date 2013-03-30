@@ -26,6 +26,7 @@ Write `Yumfile`.
     repo "base", "http://vault.centos.org/6.2/os/x86_64/"
 
     rpm "coreutils"
+    rpm "perl"
 
 Run `pandle install`.
 
@@ -34,8 +35,18 @@ Run `pandle install`.
 
 Then, you can execute any command in the chroot environment.
 
-    # pandle exec pwd
-    /
+    # pandle exec perl -v
+    
+If you want to remove `perl` and packages come from `perl`, delete from `Yumfile` and `pandle install` again.
+
+    # cat Yumfile
+    repo "base", "http://vault.centos.org/6.2/os/x86_64/"
+
+    rpm "coreutils"
+    
+    # pandle install
+    # pandle list
+    # pandle exec perl -v
 
 ## Contributing
 
