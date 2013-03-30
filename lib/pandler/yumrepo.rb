@@ -83,7 +83,7 @@ class Pandler::Yumrepo
     update_specs
   end
 
-  def download_pkgs #TODO
+  def download_pkgs
     pkgs = []
     if @lockfile.nil?
       pkgs = rpms
@@ -100,8 +100,14 @@ class Pandler::Yumrepo
         removed_pkgs.each do |rm|
 	  rm_package = ""
           @lockfile["specs"].each { |package, spec| rm_package = package if spec["name"] == rm }
+          rpms_package = []
+          rpms.each { |name| @lockfile["specs"].each { |package, spec| rpms_package.push package if spec["name"] == name } }
           @lockfile["specs"].each do |package, spec|
-            pkgs.delete(package) if spec["comesfrom"] == [rm_package]
+            if spec["comesfrom"].include? rm_package
+              if spec["comesfrom"].select { |pkg| rpms_package.include?(pkg) or pkg == rm_package } == [rm_package]
+                pkgs.delete(package)
+              end
+            end
           end
         end
       end

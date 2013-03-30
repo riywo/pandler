@@ -21,10 +21,11 @@ class Pandler::CLI < Thor
     @chroot.init
     @yumrepo.createrepo
     @chroot.install(*@yumrepo.install_pkgs)
-    
-#    @chroot.remove(@yumrepo.remove_pkgs)
-#
-#    @yumrepo.save_lockfile
+  end
+
+  desc "list", "List"
+  def list
+    puts @chroot.list
   end
 
   desc "clean", "Clean"

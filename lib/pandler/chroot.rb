@@ -1,4 +1,5 @@
 require "etc"
+require "open3"
 
 class Pandler::Chroot
   attr_reader :base_dir, :root_dir, :yumrepo, :mounts
@@ -31,6 +32,11 @@ class Pandler::Chroot
 
   def install(*pkgs)
     yum_install(*pkgs)
+    rpm_erase_exclude(*pkgs)
+  end
+
+  def installed_pkgs
+    rpm_qa
   end
 
   def execute(*cmd)
@@ -42,11 +48,31 @@ class Pandler::Chroot
     FileUtils.remove_entry_secure root_dir
   end
 
+  def list
+    rpm_qa
+  end
+
   private
 
   def yum_install(*pkgs)
     cmd = ["yum", "--installroot", root_dir, "install"] + pkgs
     run_cmd(*cmd)
+  end
+
+  def rpm_erase_exclude(*pkgs)
+    remove_pkgs = gratuitous_pkgs(*pkgs)
+    if remove_pkgs.size > 0
+      cmd = ["rpm", "--root", root_dir, "--erase"] + remove_pkgs
+      run_cmd(*cmd)
+    end
+  end
+
+  def gratuitous_pkgs(*pkgs)
+    rpm_qa - pkgs
+  end
+
+  def rpm_qa
+    run_cmd_capture_stdout("rpm", "--root", root_dir, "-qa").sort
   end
 
   def run_cmd(*cmd)
@@ -56,6 +82,13 @@ class Pandler::Chroot
 
   def chroot_run_cmd(*cmd)
     run_cmd("chroot", root_dir, *cmd)
+  end
+
+  def run_cmd_capture_stdout(*cmd)
+    Open3.popen3(*cmd) do |stdin, stdout, stderr|
+      stdin.close
+      stdout.readlines.map { |l| l.chomp }
+    end
   end
 
   def write_file(path, content)

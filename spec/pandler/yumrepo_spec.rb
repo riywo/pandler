@@ -83,7 +83,6 @@ specs:
        "pandler-test-dep-b-0.0.1-1.x86_64",
       ]
     end
-    it { system "cat Yumfile.lock" }
   end
 
   describe "rm pandler-test-dep-a" do

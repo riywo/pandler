@@ -27,13 +27,13 @@ def postresolve_hook(conduit):
         }
         if len(relatedto_list) == 0:
             ltsv = u"\t".join(k + u":" + v for k, v in dic.iteritems())
-            print(ltsv)
+#            print(ltsv)
             file.write(ltsv + "\n")
         else:
             for relatedto in relatedto_list:
                 dic["relatedto"] = __pkg_to_s(relatedto)
                 ltsv = u"\t".join(k + u":" + v for k, v in dic.iteritems())
-                print(ltsv)
+#                print(ltsv)
                 file.write(ltsv + "\n")
 
     file.close()
