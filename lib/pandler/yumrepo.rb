@@ -2,6 +2,18 @@ require "erb"
 require "open3"
 require "yaml"
 
+class Hash
+  def to_yaml( opts = {} )
+    YAML::quick_emit( object_id, opts ) do |out|
+      out.map( taguri, to_yaml_style ) do |map|
+        sort.each do |k, v|
+          map.add( k, v )
+        end
+      end
+    end
+  end
+end
+
 class Pandler::Yumrepo
   attr_reader :base_dir, :repo_dir, :yumfile_path, :lockfile_path
   def initialize(args = {})
@@ -66,19 +78,35 @@ class Pandler::Yumrepo
     end
   end
 
+  def yum_download
+    run_cmd(*yum("install", *download_pkgs))
+    update_specs
+  end
+
   def download_pkgs #TODO
     pkgs = []
     if @lockfile.nil?
       pkgs = rpms
     else
       pkgs = @lockfile["specs"].keys
+      new_pkgs     = rpms - @lockfile["rpms"]
+      removed_pkgs = @lockfile["rpms"] - rpms
+
+      if new_pkgs.size > 0
+        pkgs += new_pkgs
+      end
+
+      if removed_pkgs.size > 0
+        removed_pkgs.each do |rm|
+	  rm_package = ""
+          @lockfile["specs"].each { |package, spec| rm_package = package if spec["name"] == rm }
+          @lockfile["specs"].each do |package, spec|
+            pkgs.delete(package) if spec["comesfrom"] == [rm_package]
+          end
+        end
+      end
     end
     pkgs
-  end
-
-  def yum_download
-    run_cmd(*yum("install", *download_pkgs))
-    update_specs
   end
 
   def update_specs
@@ -103,8 +131,6 @@ class Pandler::Yumrepo
 
   def solve_comesfrom
     @specs.each do |package, spec|
-      next unless spec.has_key? "relatedto"
-
       checked_pkg = {}
       @specs[package]["comesfrom"] = comesfrom(package, checked_pkg)
     end
@@ -117,9 +143,11 @@ class Pandler::Yumrepo
 
       checked_pkg[pkg] = true
       spec = @specs[pkg]
+
+      rpm_list.push pkg if rpms.include?(@specs[pkg]["name"])
       if spec.has_key? "relatedto"
         spec["relatedto"].each do |related|
-          rpm_list.push related unless rpms.index(@specs[related]["name"]).nil?
+          rpm_list.push related if rpms.include?(@specs[related]["name"])
         end
         rpm_list += comesfrom(spec["relatedto"], checked_pkg)
       end

@@ -12,6 +12,7 @@ class Pandler::Yumfile
   def load_file(filename)
     contents = File.read(filename)
     instance_eval(contents, filename, 1)
+    @rpms.sort!
     self
   end
 
