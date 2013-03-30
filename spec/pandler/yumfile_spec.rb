@@ -16,5 +16,5 @@ rpm "basesystem"
   it { should have(2).repos }
   its(:repos) { should have_key 'base' }
   its(:repos) { should have_key 'update' }
-  its(:rpms)  { should have_key 'basesystem' }
+  its(:rpms)  { should include 'basesystem' }
 end

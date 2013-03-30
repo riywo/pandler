@@ -3,7 +3,7 @@ class Pandler::Yumfile
 
   def initialize(filename)
     @repos = {}
-    @rpms = {}
+    @rpms = []
     load_file(filename) if File.exists? filename
   end
 
@@ -20,8 +20,6 @@ class Pandler::Yumfile
   end
 
   def rpm(name, version = nil)
-    @rpms[name] = {
-      :version => version,
-    }
+    @rpms.push(name)
   end
 end

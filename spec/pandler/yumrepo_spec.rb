@@ -11,23 +11,47 @@ describe Pandler::Yumrepo do
 repo "test",   "http://localhost:#{test_port}"
 rpm  "pandler-test"
 rpm  "pandler-test-a"
+rpm  "pandler-test-dep-a"
+rpm  "pandler-test-dep-b"
     EOF
     write_file("Yumfile", yumfile)
     yumfile_lock = <<-EOF
-:rpms:
-  pandler-test-a:
-  pandler-test:
-:specs:
-  pandler-test-a:
-    :arch: x86_64
-    :version: 0.0.1-1
-    :epoch: 1
-  pandler-test:
-    :arch: x86_64
-    :version: 0.0.1-1
-    :epoch: 1
-:repos:
+repos:
   test: http://localhost:#{test_port}
+specs:
+  pandler-test-dep-a-0.0.1-1.x86_64:
+    name: pandler-test-dep-a
+    arch: x86_64
+    version: 0.0.1
+    release: "1"
+  pandler-test-a-0.0.1-1.x86_64:
+    name: pandler-test-a
+    arch: x86_64
+    version: 0.0.1
+    release: "1"
+  pandler-test-0.0.1-1.x86_64:
+    name: pandler-test
+    arch: x86_64
+    version: 0.0.1
+    release: "1"
+  pandler-test-dep-b-0.0.1-1.x86_64:
+    name: pandler-test-dep-b
+    arch: x86_64
+    version: 0.0.1
+    release: "1"
+  pandler-test-dep-required-0.0.1-1.x86_64:
+    relatedto:
+    - pandler-test-dep-a-0.0.1-1.x86_64
+    - pandler-test-dep-b-0.0.1-1.x86_64
+    name: pandler-test-dep-required
+    arch: x86_64
+    release: "1"
+    version: 0.0.1
+rpms:
+- pandler-test
+- pandler-test-a
+- pandler-test-dep-a
+- pandler-test-dep-b
     EOF
     write_file("Yumfile.lock", yumfile_lock)
     @yumrepo = Pandler::Yumrepo.new(:base_dir => @base_dir)
@@ -63,7 +87,12 @@ rpm  "pandler-test-a"
     end
     it("should have repodata") { Pathname("#{@yumrepo.repo_dir}/repodata").should exist }
     it("should have pandle-test") { Pathname("#{@yumrepo.repo_dir}/pandler-test-0.0.1-1.x86_64.rpm").should exist }
-    its(:install_pkgs) { should eq ["pandler-test-0.0.1-1.x86_64", "pandler-test-a-0.0.1-1.x86_64"] }
-    it { system("cat Yumfile.lock") }
+    its(:install_pkgs) { should eq [
+       "pandler-test-0.0.1-1.x86_64",
+       "pandler-test-a-0.0.1-1.x86_64",
+       "pandler-test-dep-a-0.0.1-1.x86_64",
+       "pandler-test-dep-b-0.0.1-1.x86_64",
+       "pandler-test-dep-required-0.0.1-1.x86_64",
+    ] }
   end
 end
