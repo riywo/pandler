@@ -1,8 +1,11 @@
 # Pandler
+Manage your packages with chroot.
 
-TODO: Write a gem description
+Pandler(= Package + Bundler) helps managing rpm/yum packages. Using `Yumfile` and `Yumfile.lock`, Pandler automatically creates a locked chroot environment.
 
 ## Installation
+
+*Currently Pandler support only root user usage because of `mount`. You should install and run as root user.*
 
 Add this line to your application's Gemfile:
 
@@ -18,7 +21,22 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Write `Yumfile`.
+
+    repo "base", "http://vault.centos.org/6.2/os/x86_64/"
+
+    rpm "basesystem"
+    rpm ""
+
+Run `pandle install`.
+
+    # pandle install
+    # pandle list
+
+Then, you can execute any command in the chroot environment.
+
+    # pandle exec pwd
+    /
 
 ## Contributing
 
