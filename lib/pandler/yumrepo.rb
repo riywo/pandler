@@ -53,7 +53,7 @@ class Pandler::Yumrepo
   end
 
   def read_lockfile
-    File.exists?(lockfile_path) ? YAML.load_file(lockfile_path) : {:specs => {}}
+    File.exists?(lockfile_path) ? YAML.load_file(lockfile_path) : nil
   end
 
   def write_lockfile
@@ -68,8 +68,10 @@ class Pandler::Yumrepo
 
   def download_pkgs #TODO
     pkgs = []
-    @lockfile["specs"].each do |package, spec|
-      pkgs.push package
+    if @lockfile.nil?
+      pkgs = rpms
+    else
+      pkgs = @lockfile["specs"].keys
     end
     pkgs
   end

@@ -19,7 +19,7 @@ class Pandler::Yumfile
     @repos[name] = url
   end
 
-  def rpm(name, version = nil)
+  def rpm(name)
     @rpms.push(name)
   end
 end
