@@ -26,7 +26,7 @@ Write `Yumfile`.
     repo "base", "http://vault.centos.org/6.2/os/x86_64/"
 
     rpm "basesystem"
-    rpm ""
+    rpm "coreutils"
 
 Run `pandle install`.
 
